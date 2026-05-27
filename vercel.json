@@ -3,9 +3,9 @@
   "builds": [
     { "src": "index.js", "use": "@vercel/node" }
   ],
-  "routes": [
-    { "src": "/messes", "dest": "/api/messes" },
-    { "src": "/api/(.*)", "dest": "/index.js" },
-    { "src": "/(.*)", "dest": "/index.js" }
+  "rewrites": [
+    { "source": "/messes", "destination": "/api/messes" },
+    { "source": "/api/(.*)", "destination": "/index.js" },
+    { "source": "/(.*)", "destination": "/index.js" }
   ]
 }
