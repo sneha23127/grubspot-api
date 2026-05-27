@@ -1,0 +1,4 @@
+{
+  "ignore": ["scratch/*", "node_modules/*"],
+  "ext": "js,json"
+}
