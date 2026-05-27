@@ -211,10 +211,7 @@ const deleteUser = async (req, res) => {
       await db.query('DELETE FROM tickets WHERE LOWER(user_name) = LOWER($1)', [user.name]);
     }
 
-    // 4. Delete associated payments
-    await db.query('DELETE FROM payments WHERE user_id = $1', [id]);
-
-    // 5. Delete associated messes (if they are a mess owner)
+    // 4. Delete associated messes (if they are a mess owner)
     await db.query('DELETE FROM messes WHERE owner_id = $1', [id]);
 
     // 5. Delete the user

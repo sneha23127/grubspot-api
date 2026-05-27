@@ -119,48 +119,7 @@ const verifyPayment = async (req, res) => {
   }
 };
 
-// GET /api/payments
-const getAllPayments = async (req, res) => {
-  try {
-    const result = await db.query(
-      `SELECT p.id, p.user_id, p.mess_name, p.amount, p.currency, p.status, p.created_at, u.name as user_name
-       FROM payments p
-       LEFT JOIN users u ON p.user_id = u.id
-       ORDER BY p.created_at DESC`
-    );
-    res.status(200).json({ status: 'success', payments: result.rows });
-  } catch (err) {
-    console.error('Error fetching all payments:', err);
-    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
-  }
-};
-
-// GET /api/payments/owner
-const getMessPayments = async (req, res) => {
-  try {
-    const { mess_name } = req.query;
-    if (!mess_name) {
-      return res.status(400).json({ status: 'error', message: 'mess_name query parameter is required.' });
-    }
-
-    const result = await db.query(
-      `SELECT p.id, p.user_id, p.mess_name, p.amount, p.currency, p.status, p.created_at, u.name as user_name
-       FROM payments p
-       LEFT JOIN users u ON p.user_id = u.id
-       WHERE LOWER(p.mess_name) = LOWER($1)
-       ORDER BY p.created_at DESC`,
-      [mess_name]
-    );
-    res.status(200).json({ status: 'success', payments: result.rows });
-  } catch (err) {
-    console.error('Error fetching mess payments:', err);
-    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
-  }
-};
-
 module.exports = {
   createOrder,
-  verifyPayment,
-  getAllPayments,
-  getMessPayments
+  verifyPayment
 };

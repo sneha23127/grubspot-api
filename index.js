@@ -23,10 +23,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Health check
-app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'GrubSpot Express backend is running.' });
-});
-
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'GrubSpot API is running.' });
 });
@@ -58,5 +54,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 GrubSpot backend running on http://localhost:${PORT}`);
 });
-
-module.exports = app;

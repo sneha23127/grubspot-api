@@ -133,11 +133,6 @@ const updateSubscriptionStatus = async (req, res) => {
         `UPDATE subscriptions SET status = $1, pause_start_date = $2, pause_end_date = $3 WHERE id = $4 RETURNING *`,
         [status, pause_start_date, pause_end_date, id]
       );
-    } else if (status === 'CANCELLED') {
-      result = await db.query(
-        `UPDATE subscriptions SET status = $1, pause_start_date = NULL, pause_end_date = NULL, expiry_date = CURRENT_DATE WHERE id = $2 RETURNING *`,
-        [status, id]
-      );
     } else {
       result = await db.query(
         `UPDATE subscriptions SET status = $1, pause_start_date = NULL, pause_end_date = NULL WHERE id = $2 RETURNING *`,
