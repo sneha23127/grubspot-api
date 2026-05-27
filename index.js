@@ -9,6 +9,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
@@ -22,31 +23,26 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'GrubSpot API is running.' });
-});
-
-// Routes
-// Add this root route handler
+// Base/Utility Routes
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Welcome to the GrubSpot API!' });
 });
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'GrubSpot API is running.' });
 });
-app.use('/api', authRoutes);
-app.use('/api', messRoutes);
+
+// Specific API Routes (Keep these on top)
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api', ticketRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/payments', paymentRoutes);
-
-const reviewRoutes = require('./routes/reviewRoutes');
 app.use('/api/reviews', reviewRoutes);
+
+// Generic / Base API Routes (Keep these below specific sub-paths)
+app.use('/api', authRoutes);
+app.use('/api', messRoutes);
+app.use('/api', ticketRoutes);
 
 // 404 handler
 app.use((req, res) => {
