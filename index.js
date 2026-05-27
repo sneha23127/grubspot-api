@@ -28,6 +28,15 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
+// Add this root route handler
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Welcome to the GrubSpot API!' });
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'GrubSpot API is running.' });
+});
 app.use('/api', authRoutes);
 app.use('/api', messRoutes);
 app.use('/api/users', userRoutes);
