@@ -80,6 +80,14 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 GrubSpot backend running on http://localhost:${PORT}`);
+
+  // Verify database connectivity at startup
+  try {
+    const result = await db.query('SELECT NOW()');
+    console.log(`✅ Database connected — server time: ${result.rows[0].now}`);
+  } catch (err) {
+    console.error('❌ Database connection FAILED:', err.message);
+  }
 });
