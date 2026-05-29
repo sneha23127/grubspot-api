@@ -53,7 +53,7 @@ function validatePhone(phone) {
 
 // POST /api/signup
 const signup = async (req, res) => {
-  const { name, email, phone, role, mess_name, address, password } = req.body;
+  const { name, email, phone, role, mess_name, address, password, latitude, longitude } = req.body;
 
   // --- Server-side validation ---
   if (!name || !email || !password || !role) {
@@ -132,10 +132,10 @@ const signup = async (req, res) => {
     // If mess_owner, also create a row in messes table
     if (role === 'mess_owner' && mess_name) {
       await db.query(
-        `INSERT INTO messes (owner_id, mess_name, address)
-         VALUES ($1, $2, $3)
+        `INSERT INTO messes (owner_id, mess_name, address, latitude, longitude)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (owner_id) DO NOTHING`,
-        [newUser.id, mess_name, address || null]
+        [newUser.id, mess_name, address || null, latitude ? parseFloat(latitude) : null, longitude ? parseFloat(longitude) : null]
       );
     }
 
