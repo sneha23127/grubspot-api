@@ -7,8 +7,49 @@ const { sendOtpEmail } = require('../utils/emailService');
 const signup = async (req, res) => {
   const { name, email, phone, role, mess_name, address, password } = req.body;
 
+  // --- Server-side validation ---
   if (!name || !email || !password || !role) {
     return res.status(400).json({ status: 'error', message: 'Missing required fields.' });
+  }
+
+  // Name: at least 2 characters
+  if (name.trim().length < 2) {
+    return res.status(400).json({ status: 'error', message: 'Name must be at least 2 characters long.' });
+  }
+
+  // Email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ status: 'error', message: 'Invalid email address format.' });
+  }
+
+  // Phone: required for all roles, must be digits only (7–15 digits)
+  const phoneDigits = (phone || '').replace(/[\s+\-().]/g, '');
+  if (!phone || phoneDigits.length < 7 || phoneDigits.length > 15 || !/^\d+$/.test(phoneDigits)) {
+    return res.status(400).json({ status: 'error', message: 'A valid phone number is required.' });
+  }
+
+  // Password strength
+  const hasLength   = password.length >= 8;
+  const hasUpper    = /[A-Z]/.test(password);
+  const hasNumber   = /[0-9]/.test(password);
+  const hasSpecial  = /[^A-Za-z0-9]/.test(password);
+  if (!hasLength || !hasUpper || !hasNumber || !hasSpecial) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Password must be at least 8 characters and include one uppercase letter, one number, and one special character.'
+    });
+  }
+
+  // Mess owner must provide mess_name
+  if (role === 'mess_owner' && !mess_name) {
+    return res.status(400).json({ status: 'error', message: 'Mess name is required for mess owners.' });
+  }
+
+  // Role validation
+  const validRoles = ['student', 'mess_owner', 'admin'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ status: 'error', message: 'Invalid role specified.' });
   }
 
   try {
@@ -101,6 +142,12 @@ const forgotPassword = async (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Email is required.' });
   }
 
+  // Email format check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ status: 'error', message: 'Invalid email address format.' });
+  }
+
   try {
     // Check if user exists
     const result = await db.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -130,10 +177,9 @@ const forgotPassword = async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: emailResult.previewUrl
-        ? 'Verification code generated! (Simulated SMTP preview link below)'
+        ? 'Verification code sent! Check the preview link in your email client.'
         : 'Verification code sent to your email address.',
-      otp: otp, // Keep returning it in response for dev testing
-      previewUrl: emailResult.previewUrl
+      previewUrl: emailResult.previewUrl || null
     });
   } catch (err) {
     console.error('Forgot password error:', err);
@@ -147,6 +193,18 @@ const resetPassword = async (req, res) => {
 
   if (!email || !otp || !password) {
     return res.status(400).json({ status: 'error', message: 'Email, OTP, and new password are required.' });
+  }
+
+  // Password strength validation
+  const hasLength  = password.length >= 8;
+  const hasUpper   = /[A-Z]/.test(password);
+  const hasNumber  = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  if (!hasLength || !hasUpper || !hasNumber || !hasSpecial) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'New password must be at least 8 characters and include one uppercase letter, one number, and one special character.'
+    });
   }
 
   try {
