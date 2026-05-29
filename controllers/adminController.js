@@ -66,7 +66,7 @@ const updateStatus = async (req, res) => {
 
 // POST /api/admin/add-mess-owner
 const addMessOwner = async (req, res) => {
-  const { name, email, phone, mess_name, address, password, googleMapUrl, latitude, longitude } = req.body;
+  const { name, email, phone, mess_name, address, password, googleMapUrl } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({ status: 'error', message: 'Name, email and password are required.' });
@@ -106,10 +106,10 @@ const addMessOwner = async (req, res) => {
     // Create mess entry
     if (mess_name) {
       await db.query(
-        `INSERT INTO messes (owner_id, mess_name, address, latitude, longitude)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO messes (owner_id, mess_name, address)
+         VALUES ($1, $2, $3)
          ON CONFLICT (owner_id) DO NOTHING`,
-        [newOwner.id, mess_name, address || null, latitude ? parseFloat(latitude) : null, longitude ? parseFloat(longitude) : null]
+        [newOwner.id, mess_name, address || null]
       );
     }
 
