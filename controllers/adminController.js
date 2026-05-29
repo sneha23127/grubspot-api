@@ -72,6 +72,11 @@ const addMessOwner = async (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Name, email and password are required.' });
   }
 
+  const emailLower = email.trim().toLowerCase();
+  if (!emailLower.endsWith('@gmail.com')) {
+    return res.status(400).json({ status: 'error', message: 'Mess owner email must be a Gmail address (@gmail.com).' });
+  }
+
   try {
     // Check if email or phone already exists
     const existing = await db.query('SELECT id, email, phone FROM users WHERE email = $1 OR phone = $2', [email, phone]);

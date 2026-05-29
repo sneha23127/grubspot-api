@@ -71,6 +71,17 @@ const signup = async (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Invalid email address format.' });
   }
 
+  const emailLower = email.trim().toLowerCase();
+  if (role === 'mess_owner') {
+    if (!emailLower.endsWith('@gmail.com')) {
+      return res.status(400).json({ status: 'error', message: 'Mess owner email must be a Gmail address (@gmail.com).' });
+    }
+  } else {
+    if (!emailLower.endsWith('@gmail.com') && !emailLower.endsWith('@kristujayanti.com')) {
+      return res.status(400).json({ status: 'error', message: 'Email must be @gmail.com or @kristujayanti.com.' });
+    }
+  }
+
   // Phone: country-code-aware validation
   const phoneError = validatePhone(phone);
   if (phoneError) {

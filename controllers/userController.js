@@ -9,6 +9,25 @@ const updateProfile = async (req, res) => {
   }
 
   try {
+    if (email) {
+      // First, get the user's role to validate the email domain
+      const roleResult = await db.query('SELECT role FROM users WHERE id = $1', [id]);
+      if (roleResult.rows.length === 0) {
+        return res.status(404).json({ status: 'error', message: 'User not found.' });
+      }
+      const userRole = roleResult.rows[0].role;
+      const emailLower = email.trim().toLowerCase();
+      if (userRole === 'mess_owner') {
+        if (!emailLower.endsWith('@gmail.com')) {
+          return res.status(400).json({ status: 'error', message: 'Mess owner email must be a Gmail address (@gmail.com).' });
+        }
+      } else {
+        if (!emailLower.endsWith('@gmail.com') && !emailLower.endsWith('@kristujayanti.com')) {
+          return res.status(400).json({ status: 'error', message: 'Email must be @gmail.com or @kristujayanti.com.' });
+        }
+      }
+    }
+
     // Update the users table
     const userResult = await db.query(
       `UPDATE users
