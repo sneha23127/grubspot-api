@@ -3,6 +3,54 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { sendOtpEmail } = require('../utils/emailService');
 
+// Country-specific phone validation rules (mirrors the frontend PHONE_RULES)
+const PHONE_RULES = {
+  '+91':  { pattern: /^[6-9]\d{9}$/,     hint: '10 digits starting with 6–9 (India)' },
+  '+1':   { pattern: /^[2-9]\d{2}[2-9]\d{6}$/, hint: '10 digits – area code + number (US/Canada)' },
+  '+44':  { pattern: /^[1-9]\d{8,9}$/,   hint: '9–10 digits without leading 0 (UK)' },
+  '+61':  { pattern: /^[2-9]\d{8}$/,     hint: '9 digits without leading 0 (Australia)' },
+  '+49':  { pattern: /^[1-9]\d{9,10}$/,  hint: '10–11 digits without leading 0 (Germany)' },
+  '+971': { pattern: /^[0-9]\d{8}$/,     hint: '9 digits (UAE)' },
+  '+65':  { pattern: /^[689]\d{7}$/,     hint: '8 digits starting with 6, 8, or 9 (Singapore)' },
+};
+
+/**
+ * Validates a full phone string like "+91 9876543210".
+ * Returns null if valid, or an error message string if invalid.
+ */
+function validatePhone(phone) {
+  if (!phone || !phone.trim()) return 'Phone number is required.';
+
+  // Split on the first space: [countryCode, localNumber]
+  const spaceIdx = phone.indexOf(' ');
+  if (spaceIdx === -1) return 'Phone must include a country code (e.g. +91 9876543210).';
+
+  const countryCode = phone.slice(0, spaceIdx).trim();
+  const localNumber = phone.slice(spaceIdx + 1).replace(/\s/g, '');
+
+  if (!/^\+\d{1,4}$/.test(countryCode)) {
+    return 'Invalid country code format.';
+  }
+
+  if (!/^\d+$/.test(localNumber)) {
+    return 'Phone number must contain digits only (no spaces or symbols in the number part).';
+  }
+
+  const rule = PHONE_RULES[countryCode];
+  if (rule) {
+    if (!rule.pattern.test(localNumber)) {
+      return `Invalid phone number for ${countryCode}. Expected format: ${rule.hint}.`;
+    }
+  } else {
+    // Unknown country code — fall back to ITU range (7–15 digits)
+    if (localNumber.length < 7 || localNumber.length > 15) {
+      return 'Phone number must be 7–15 digits for the provided country code.';
+    }
+  }
+
+  return null; // valid
+}
+
 // POST /api/signup
 const signup = async (req, res) => {
   const { name, email, phone, role, mess_name, address, password } = req.body;
@@ -23,10 +71,10 @@ const signup = async (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Invalid email address format.' });
   }
 
-  // Phone: required for all roles, must be digits only (7–15 digits)
-  const phoneDigits = (phone || '').replace(/[\s+\-().]/g, '');
-  if (!phone || phoneDigits.length < 7 || phoneDigits.length > 15 || !/^\d+$/.test(phoneDigits)) {
-    return res.status(400).json({ status: 'error', message: 'A valid phone number is required.' });
+  // Phone: country-code-aware validation
+  const phoneError = validatePhone(phone);
+  if (phoneError) {
+    return res.status(400).json({ status: 'error', message: phoneError });
   }
 
   // Password strength
