@@ -9,6 +9,16 @@ const createReview = async (req, res) => {
   }
 
   try {
+    // Check if the user has already reviewed this mess
+    const existingReview = await db.query(
+      `SELECT * FROM reviews WHERE user_id = $1 AND LOWER(mess_name) = LOWER($2)`,
+      [user_id, mess_name]
+    );
+
+    if (existingReview.rows.length > 0) {
+      return res.status(400).json({ status: 'error', message: 'You have already submitted a review for this mess.' });
+    }
+
     const result = await db.query(
       `INSERT INTO reviews (user_id, user_name, mess_name, rating, comment)
        VALUES ($1, $2, $3, $4, $5)
